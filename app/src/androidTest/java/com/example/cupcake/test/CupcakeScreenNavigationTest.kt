@@ -1,5 +1,6 @@
 package com.example.cupcake.test
 
+import android.icu.util.Calendar
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -10,18 +11,22 @@ import androidx.navigation.compose.ComposeNavigator
 import androidx.navigation.testing.TestNavHostController
 import com.example.cupcake.CupcakeApp
 import com.example.cupcake.CupcakeScreen
-import junit.framework.TestCase.assertEquals
 import com.example.cupcake.R
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Locale
 
 class CupcakeScreenNavigationTest {
+
+    /**
+     * Note: To access to an empty activity, the code uses ComponentActivity instead of
+     * MainActivity.
+     */
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
+
     private lateinit var navController: TestNavHostController
 
     @Before
@@ -32,6 +37,24 @@ class CupcakeScreenNavigationTest {
             }
             CupcakeApp(navController = navController)
         }
+    }
+
+    @Test
+    fun cupcakeNavHost_verifyStartDestination() {
+        navController.assertCurrentRouteName(CupcakeScreen.Start.name)
+    }
+
+    @Test
+    fun cupcakeNavHost_verifyBackNavigationNotShownOnStartOrderScreen() {
+        val backText = composeTestRule.activity.getString(R.string.back_button)
+        composeTestRule.onNodeWithContentDescription(backText).assertDoesNotExist()
+    }
+
+    @Test
+    fun cupcakeNavHost_clickOneCupcake_navigatesToSelectFlavorScreen() {
+        composeTestRule.onNodeWithStringId(R.string.one_cupcake)
+            .performClick()
+        navController.assertCurrentRouteName(CupcakeScreen.Flavor.name)
     }
 
     @Test
@@ -83,24 +106,6 @@ class CupcakeScreenNavigationTest {
     }
 
     @Test
-    fun cupcakeNavHost_verifyStartDestination() {
-        navController.assertCurrentRouteName(CupcakeScreen.Start.name)
-    }
-
-    @Test
-    fun cupcakeNavHost_verifyBackNavigationNotShownOnStartOrderScreen() {
-        val backText = composeTestRule.activity.getString(R.string.back_button)
-        composeTestRule.onNodeWithContentDescription(backText).assertDoesNotExist()
-    }
-
-    @Test
-    fun cupcakeNavHost_clickOneCupcake_navigatesToSelectFlavorScreen() {
-        composeTestRule.onNodeWithStringId(R.string.one_cupcake)
-            .performClick()
-        navController.assertCurrentRouteName(CupcakeScreen.Flavor.name)
-    }
-
-    @Test
     fun cupcakeNavHost_clickCancelOnSummaryScreen_navigatesToStartOrderScreen() {
         navigateToSummaryScreen()
         composeTestRule.onNodeWithStringId(R.string.cancel)
@@ -113,13 +118,6 @@ class CupcakeScreenNavigationTest {
             .performClick()
         composeTestRule.onNodeWithStringId(R.string.chocolate)
             .performClick()
-    }
-
-    private fun getFormattedDate(): String {
-        val calendar = Calendar.getInstance()
-        calendar.add(java.util.Calendar.DATE, 1)
-        val formatter = SimpleDateFormat("E MMM d", Locale.getDefault())
-        return formatter.format(calendar.time)
     }
 
     private fun navigateToPickupScreen() {
@@ -141,4 +139,10 @@ class CupcakeScreenNavigationTest {
         composeTestRule.onNodeWithContentDescription(backText).performClick()
     }
 
+    private fun getFormattedDate(): String {
+        val calendar = Calendar.getInstance()
+        calendar.add(java.util.Calendar.DATE, 1)
+        val formatter = SimpleDateFormat("E MMM d", Locale.getDefault())
+        return formatter.format(calendar.time)
+    }
 }
